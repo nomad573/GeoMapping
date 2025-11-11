@@ -20,13 +20,35 @@ const color = d3.scaleSequential()
   .interpolator(d3.interpolateViridis);
 
 // Data files
-const geojsonURL = 'https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json';
+const geojsonRemoteURL = 'https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json';
+const geojsonLocalFallback = 'us-states-temp.json';
 const dataCSV = 'data/states_data.csv';
 
+// Helper to load GeoJSON with fallback if remote incomplete or fails
+function loadGeoJSONWithFallback() {
+  return d3.json(geojsonRemoteURL).then(remote => {
+    if (!remote || !remote.features || remote.features.length < 50) {
+      console.warn('Remote GeoJSON suspicious (features:', remote?.features?.length, ') – trying local fallback');
+      return d3.json(geojsonLocalFallback).then(local => {
+        console.log('Loaded local fallback GeoJSON with features:', local.features.length);
+        return local;
+      }).catch(err => {
+        console.error('Local fallback failed:', err);
+        return remote; // return whatever we had
+      });
+    }
+    return remote;
+  }).catch(err => {
+    console.warn('Remote GeoJSON failed, attempting local fallback...', err);
+    return d3.json(geojsonLocalFallback);
+  });
+}
+
 Promise.all([
-  d3.json(geojsonURL),
+  loadGeoJSONWithFallback(),
   d3.csv(dataCSV)
 ]).then(([geo, data]) => {
+  const debugDiv = d3.select('#debug');
   console.log('=== DATA LOADING VERIFICATION ===');
   console.log('GeoJSON features loaded:', geo.features.length);
   console.log('CSV rows loaded:', data.length);
@@ -48,6 +70,7 @@ Promise.all([
   const vmax = d3.max(values);
   
   console.log('Value range: $' + vmin.toLocaleString() + ' - $' + vmax.toLocaleString());
+  debugDiv.text(`Geo features: ${geo.features.length}\nCSV rows: ${data.length}\nValue range: $${vmin.toLocaleString()} - $${vmax.toLocaleString()}`);
   
   // Set domain for color scale
   color.domain([vmin, vmax]);
@@ -58,8 +81,8 @@ Promise.all([
   let matchedStates = 0;
   let unmatchedStates = [];
   
-  g.selectAll('path')
-    .data(geo.features)
+  const stateSelection = g.selectAll('path')
+    .data(geo.features, d => d.properties.name)
     .join('path')
       .attr('class', 'state')
       .attr('d', path)
@@ -118,6 +141,13 @@ Promise.all([
     console.log('Unmatched state names:', unmatchedStates);
   }
   console.log('========================');
+  debugDiv.text(debugDiv.text() + `\nMatched states: ${matchedStates}\nUnmatched states: ${unmatchedStates.length}${unmatchedStates.length? '\nList: ' + unmatchedStates.join(', '): ''}`);
+
+  if (matchedStates < 49) {
+    debugDiv.style('background', '#fff3cd').style('border-color','#ffc107');
+  } else {
+    debugDiv.style('background', '#e7f8ec').style('border-color','#4caf50');
+  }
 
   // Create legend
   createLegend(vmin, vmax);

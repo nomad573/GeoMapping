@@ -41,8 +41,8 @@ svg#map{
 }
 .hidden{ display:none }
 .state{ 
-  stroke:#ffffff; 
-  stroke-width:0.6px;
+  stroke:#999999; 
+  stroke-width:0.75px;
   cursor:pointer;
   transition: stroke-width 0.1s;
 }
