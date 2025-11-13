@@ -1,101 +1,78 @@
-# GeoMapping
-David's Homework
+# US States Choropleth Visualization
 
-## Interactive Choropleth: Median Household Income by State
+Interactive D3 visualization that joins a custom CSV of state-level values with a US States GeoJSON to produce:
 
-This repository is a complete D3 choropleth visualization mapping **median household income** across all 50 US states (2023 Census estimates).
+1. Choropleth map (color encodes the numeric `value` field).
+2. Linked Top-10 bar chart.
+3. Interactions: hover tooltip, zoom/pan (click state to zoom, click background to reset), cross-highlighting between map and bars.
 
-**Features:**
-- Loads GeoJSON for US states (from a public URL)
-- Loads a local CSV (`data/states_data.csv`) with median household income for all 50 states
-- Renders a choropleth with:
-  - Color scale (YlGnBu interpolator, tuned for income range $52,985–$98,461)
-  - Hover tooltip showing state name and formatted income value
-  - Click-to-zoom on individual states
-  - Click background to reset zoom
-  - Legend with 7 color steps
+## Data Sources
 
-**Files included:**
-- `index.html` — demo page
-- `styles.css` — enhanced styles and tooltip
-- `script.js` — D3 code; load geojson + CSV, join, color scale, interactions
-- `data/states_data.csv` — **full 50-state dataset** with median household income
+- `data/states_data.csv` (provided in this repository) — columns: `state,value`.
+- GeoJSON fetched at runtime from PublicaMundi MappingAPI (`us-states.json`).
 
-## How to run
+> Puerto Rico exists in the CSV but the referenced GeoJSON does not include it, so it renders only in the bar chart if included in Top 10 (currently not, due to low value).
 
-1. Start a simple HTTP server from the project root (browsers block file:// XHR):
+## Project Structure
 
-   **With Python 3 (Windows PowerShell):**
+```text
+index.html          # Main page
+css/style.css       # Styles for map, bars, legend, tooltip
+js/main.js          # D3 logic: load, merge, render, interactions
+data/states_data.csv# Content data
+README.md           # Documentation
+```
 
-```powershell
+## Running Locally
+
+You need a simple static server (required because browsers block local file CSV fetches). Options:
+
+### Option A: VS Code Live Server Extension (recommended)
+
+1. Install Live Server extension.
+2. Right-click `index.html` → "Open with Live Server".
+
+### Option B: Python (ensure Python is installed)
+
+If you had exit code 1 previously, confirm Python is on PATH: `python --version`.
+
+```pwsh
 python -m http.server 8000
+# Then visit: http://localhost:8000/index.html
 ```
 
-   Then open http://localhost:8000 in your browser.
+### Option C: Node.js http-server
 
-2. The map will load automatically. Hover over states to see income values, click to zoom, click background to reset.
-
-## Data sources
-
-- **Geodata (GeoJSON):**
-  - US states GeoJSON: https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json
-  - For higher-quality or different regions consider: Natural Earth, US Census TIGER/Line (shapefiles), or world-atlas TopoJSON.
-
-- **Content data:**
-  - Median household income values are from US Census Bureau American Community Survey (ACS) 2023 estimates
-  - Data range: $52,985 (Mississippi) to $98,461 (Maryland)
-
-## Modifying the dataset
-
-To swap in your own data, replace `data/states_data.csv` with a CSV that has two columns:
-- `state` (matching the `name` property in the GeoJSON exactly)
-- `value` (numeric)
-
-Example header:
-```
-state,value
-California,91905
-Texas,73035
-...
+```pwsh
+npm install -g http-server
+http-server -p 8000
 ```
 
-**Join key note:** The demo joins by `state` (string name). If your GeoJSON has an ISO code or FIPS id, it's better to join on those numeric codes to avoid mismatches. Update the join logic in `script.js` at line `valueByName.set(...)`.
+## Customization
 
-## Converting geodata to GeoJSON
+- Change color scheme: replace `d3.schemeBlues[9]` with another e.g. `d3.schemeOrRd[9]`.
+- Adjust legend bins: switch to quantile (`d3.scaleQuantile()`) or sequential scale.
+- Add more interactions: selection filters, a side panel with trends, or mini sparkline per state.
+- Add second dataset: load another CSV and encode circles or add choropleth compare toggle.
 
-If you have shapefiles or other formats:
+## Potential Enhancements
 
-**Using ogr2ogr (GDAL):**
-```powershell
-ogr2ogr -f GeoJSON out.geojson in.shp
-```
+- Accessibility improvements: add `aria-describedby` links, keyboard focus management.
+- Data provenance tooltip: include source & year if known.
+- Export functionality: button to download SVG as PNG.
+- Additional chart: histogram of all values, or small multiples over time if timeseries added.
 
-**Using mapshaper (npm or web):**
-```powershell
-npx mapshaper in.shp -simplify 10% -o format=geojson out.geojson
-```
+## Notes
 
-## Color scale tuning
+Assumes that `value` is a comparable numeric metric (e.g., income, population per capita, index). If semantic meaning is known, update labels and legend title accordingly.
 
-The color scale uses `d3.interpolateYlGnBu` (yellow-green-blue), which provides good contrast for continuous numeric data. Domain is set automatically from the data min/max.
+---
+Built with D3 v4 + d3-scale-chromatic.
 
-To change the color scheme, edit `script.js`:
-```javascript
-const color = d3.scaleSequential()
-  .interpolator(d3.interpolateYlGnBu);  // Try: interpolateViridis, interpolateRdYlGn, etc.
-```
+### D3 Version Notes (v4 adjustments)
 
-See D3 color schemes: https://github.com/d3/d3-scale-chromatic
-
-## Extra credit ideas
-
-- Convert regional shapefiles to GeoJSON yourself and include them locally
-- Map multiple attributes with small multiples or linked charts
-- Add filter controls, histogram, or time-series slider
-- Export map as PNG/SVG
-- Add accessibility enhancements (keyboard navigation, ARIA labels)
-
-## Assignment reference
-
-Based on Murray, S., *Interactive Data Visualization for the Web: An Introduction to Designing with D3*, Second Edition, Chapter 14.
-
+- Data loading uses nested callbacks (`d3.json` then `d3.csv`) instead of `Promise.all`.
+- Event handling uses `d3.event` (e.g., `d3.event.transform` inside zoom) instead of passed event parameter.
+- No `selection.join`; replaced with explicit `enter()` pattern for states and bars.
+- Color schemes provided by including the extra script `d3-scale-chromatic.v1.min.js`.
+- Other APIs (projections, paths, scales, axes, transitions) remain the same between v4 and v7 for this use case.

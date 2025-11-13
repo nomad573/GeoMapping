@@ -1,25 +1,54 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Choropleth Map — GeoMapping Demo</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>US States Choropleth (D3)</title>
+  <link rel="stylesheet" href="css/style.css?v=3" />
+  <!-- D3 v4 plus scale-chromatic for color schemes -->
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
 </head>
 <body>
-  <h1>Median Household Income by State (2023)</h1>
+  <header>
+    <h1>US States Choropleth</h1>
+    <p class="subtitle">Interactive map with state-level values (from <code>data/states_data.csv</code>). Hover, zoom, and explore.</p>
+  </header>
 
-  <div id="map-container">
-    <svg id="map"></svg>
-    <div id="legend"></div>
-  </div>
+  <main>
+    <div id="viz-container">
+      <div id="map-wrapper">
+        <div id="controls">
+          <label for="color-scheme">Color Scheme:</label>
+          <select id="color-scheme">
+            <option value="Blues">Blues</option>
+            <option value="Greens">Greens</option>
+            <option value="Oranges">Oranges</option>
+            <option value="Purples">Purples</option>
+            <option value="Reds">Reds</option>
+            <option value="Greys">Greys</option>
+            <option value="BuGn">Blue-Green</option>
+            <option value="OrRd">Orange-Red</option>
+            <option value="YlGnBu">Yellow-Green-Blue</option>
+            <option value="Viridis">Viridis</option>
+          </select>
+        </div>
+  <svg id="map" role="img" aria-label="Choropleth map of US states" style="background: transparent !important;"></svg>
+        <div id="tooltip" class="hidden" role="dialog" aria-live="polite"></div>
+        <div id="legend"></div>
+      </div>
+      <div id="side-panel">
+        <h2>Top 10 States</h2>
+        <svg id="bars" role="img" aria-label="Bar chart of top 10 states by value"></svg>
+        <div id="details" class="details-box">Hover a state or bar for details.</div>
+      </div>
+    </div>
+  </main>
 
-  <div id="debug" style="margin-top:12px;font:12px monospace;color:#444;background:#f5f5f5;border:1px solid #ddd;padding:8px;white-space:pre-line"></div>
+  <footer>
+    <small>GeoJSON source: PublicaMundi MappingAPI • Data file joined on state name • Built with D3 v7.</small>
+  </footer>
 
-  <div id="tooltip" class="hidden"></div>
-
-  <!-- D3 v7 -->
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-  <script src="script.js"></script>
+  <script src="js/main.js"></script>
 </body>
 </html>
