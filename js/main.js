@@ -56,6 +56,10 @@
   var savedScheme = localStorage.getItem('colorScheme') || 'Blues';
   schemeSelect.property('value', savedScheme);
 
+  function getScheme(name){
+    return schemes[name] || schemes['Blues'];
+  }
+
   var geo, rows, extent, projection, path, dataByState, values, colorScale;
 
   // Load data using nested callbacks (v4 style)
@@ -88,16 +92,17 @@
     renderMap();
     buildBars(rows);
 
-    schemeSelect.on('change', function() {
-      var scheme = this.value;
+    function onSchemeChange(){
+      var scheme = this.value || schemeSelect.property('value');
       localStorage.setItem('colorScheme', scheme);
       updateColors(scheme);
-    });
+    }
+    schemeSelect.on('change', onSchemeChange).on('input', onSchemeChange);
   }
 
   function renderMap() {
-    var scheme = schemeSelect.property('value');
-    colorScale = d3.scaleQuantize().domain(extent).range(schemes[scheme]);
+  var scheme = schemeSelect.property('value');
+  colorScale = d3.scaleQuantize().domain(extent).range(getScheme(scheme));
 
     var states = gMap.selectAll('path.state').data(geo.features);
     states.enter().append('path')
@@ -126,7 +131,7 @@
 
   function updateColors(scheme) {
     // Recompute color scale and apply directly (no transition to avoid any v4 selection inconsistencies)
-    colorScale = d3.scaleQuantize().domain(extent).range(schemes[scheme]);
+  colorScale = d3.scaleQuantize().domain(extent).range(getScheme(scheme));
     gMap.selectAll('path.state')
       .attr('fill', function(d){ var v = d.properties.value; return v == null ? '#333' : colorScale(v); });
     buildLegend(colorScale, extent, scheme);
