@@ -10,7 +10,6 @@
   var tooltip = d3.select('#tooltip');
   var legendContainer = d3.select('#legend');
   var detailsBox = d3.select('#details');
-  var schemeSelect = d3.select('#color-scheme');
 
   var geoJsonURL = 'https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json';
   var csvURL = 'data/states_data.csv';
@@ -53,12 +52,9 @@
     ]
   };
 
-  var savedScheme = localStorage.getItem('colorScheme') || 'Blues';
-  schemeSelect.property('value', savedScheme);
-
-  function getScheme(name){
-    return schemes[name] || schemes['Blues'];
-  }
+  // Fixed palette (formerly user-selectable)
+  var activeSchemeName = 'Blues';
+  function getScheme(){ return schemes[activeSchemeName]; }
 
   var geo, rows, extent, projection, path, dataByState, values, colorScale;
 
@@ -92,17 +88,11 @@
     renderMap();
     buildBars(rows);
 
-    function onSchemeChange(){
-      var scheme = this.value || schemeSelect.property('value');
-      localStorage.setItem('colorScheme', scheme);
-      updateColors(scheme);
-    }
-    schemeSelect.on('change', onSchemeChange).on('input', onSchemeChange);
+    // No color scheme UI; palette fixed. To change programmatically, set activeSchemeName and call updateColors(activeSchemeName).
   }
 
   function renderMap() {
-  var scheme = schemeSelect.property('value');
-  colorScale = d3.scaleQuantize().domain(extent).range(getScheme(scheme));
+  colorScale = d3.scaleQuantize().domain(extent).range(getScheme());
 
     var states = gMap.selectAll('path.state').data(geo.features);
     states.enter().append('path')
@@ -126,15 +116,15 @@
       svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity);
     });
 
-    buildLegend(colorScale, extent, scheme);
+  buildLegend(colorScale, extent, activeSchemeName);
   }
 
-  function updateColors(scheme) {
-    // Recompute color scale and apply directly (no transition to avoid any v4 selection inconsistencies)
-  colorScale = d3.scaleQuantize().domain(extent).range(getScheme(scheme));
+  function updateColors(name) {
+    activeSchemeName = name || activeSchemeName;
+    colorScale = d3.scaleQuantize().domain(extent).range(getScheme());
     gMap.selectAll('path.state')
       .attr('fill', function(d){ var v = d.properties.value; return v == null ? '#333' : colorScale(v); });
-    buildLegend(colorScale, extent, scheme);
+    buildLegend(colorScale, extent, activeSchemeName);
   }
 
   function formatValue(v) {
@@ -163,7 +153,7 @@
 
   function buildLegend(color, extent, scheme) {
     legendContainer.html('');
-    legendContainer.append('div').attr('class','legend-title').text('Value scale (' + scheme + ')');
+    legendContainer.append('div').attr('class','legend-title').text('Value scale');
     var scaleValues = color.range().map(function(c){
       var d = color.invertExtent(c);
       return { color: c, lo: Math.round(d[0]), hi: Math.round(d[1]) };
