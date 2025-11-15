@@ -125,9 +125,9 @@
   }
 
   function updateColors(scheme) {
+    // Recompute color scale and apply directly (no transition to avoid any v4 selection inconsistencies)
     colorScale = d3.scaleQuantize().domain(extent).range(schemes[scheme]);
     gMap.selectAll('path.state')
-      .transition().duration(500)
       .attr('fill', function(d){ var v = d.properties.value; return v == null ? '#333' : colorScale(v); });
     buildLegend(colorScale, extent, scheme);
   }
