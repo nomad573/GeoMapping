@@ -53,7 +53,7 @@
   };
 
   // Fixed palette (formerly user-selectable)
-  var activeSchemeName = 'Blues';
+  var activeSchemeName = 'Oranges';
   function getScheme(){ return schemes[activeSchemeName]; }
 
   var geo, rows, extent, projection, path, dataByState, values, colorScale;
