@@ -50,10 +50,10 @@ http-server -p 8000
 
 ## Customization
 
-- Change color scheme: replace `d3.schemeBlues[9]` with another e.g. `d3.schemeOrRd[9]`.
-- Adjust legend bins: switch to quantile (`d3.scaleQuantile()`) or sequential scale.
+- Change palette (code only): in `js/main.js` set `activeSchemeName` to another scheme like `OrRd` or replace the range array with a custom sequential scale.
+- Adjust legend bins: switch to quantile (`d3.scaleQuantile()`) or a continuous gradient using `d3.scaleSequential()`.
 - Add more interactions: selection filters, a side panel with trends, or mini sparkline per state.
-- Add second dataset: load another CSV and encode circles or add choropleth compare toggle.
+- Add second dataset: load another CSV and encode circles or add a choropleth compare toggle.
 
 ## Potential Enhancements
 
